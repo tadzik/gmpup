@@ -6,7 +6,12 @@ So here's a tool to fetch only the ports you want, nothing else.
 Fill in your gmpup.lst like in the provided example and run gmpup.pl.
 You will need Perl's LWP::Simple module (dev-perl/libwww-perl) to run
 it. It will fetch the list to the ports/ directory. If you are brave,
-you can change the $destdir variable in the code to /usr/local/portage.
+you can use the command-line option --destdir to sync your ports
+to /usr/local/portage:
+
+perl gmpup.pl --destdir=/usr/local/portage
+
 It _shouldn't_ break anything, and it works fine for me, but I'm not
 changing that default dir until the script gets tested in the field.
+
 Patches, ideas, and constructive criticism welcome.

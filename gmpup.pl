@@ -5,9 +5,10 @@ use warnings;
 use LWP::Simple;
 use File::Path 'make_path', 'remove_tree';
 use File::Basename;
+use Getopt::Long;
 
-our $destdir = '/usr/local/portage';
-our $list    = 'gmpup.lst';
+my $destdir = 'ports';
+my $list    = 'gmpup.lst';
 
 sub porturl {
     my ($overlay, $port) = @_;
@@ -41,6 +42,10 @@ sub filelist {
 }
 
 sub MAIN {
+    GetOptions(
+        "list=s"    => \$list,
+        "destdir=s" => \$destdir,
+    );
     open(my $fh, '<', $list) or die $!;
     while (<$fh>) {
         my ($overlay, $port) = split /\s+/, $_;
