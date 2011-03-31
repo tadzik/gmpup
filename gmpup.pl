@@ -3,50 +3,59 @@ use 5.010;
 use strict;
 use warnings;
 use LWP::Simple;
-use File::Slurp 'slurp';
 use File::Path 'make_path', 'remove_tree';
-#
-# WARNING: Ugly Perl
-#
+use File::Basename;
 
-#my $basedir  = '/usr/local/portage';
-my $basedir  = 'ports';
-my $listfile = 'gmpup.lst';
+our $destdir = '/usr/local/portage';
+our $list    = 'gmpup.lst';
 
-sub sync {
-    my ($name, $baseurl, $to) = @_;
-    my $stuff = get $baseurl;
-    unless ($stuff) {
-        warn "Unable to get $baseurl";
+sub porturl {
+    my ($overlay, $port) = @_;
+    return 'http://gentoo-overlays.zugaina.org/'
+           . $overlay . '/portage/' . $port . '/';
+}
+
+sub filelist {
+    my $url  = shift;
+    my @files;
+    my $html = get $url;
+    unless (defined $html) {
+        warn "Unable to fetch $url";
         return;
     }
-    my $where = "$to/$name";
-    #say "REMOVING $where";
-    remove_tree $where;
-    for ($stuff =~ /href="([^"]+)"/g) {
-        # skip these funky urls zugaina.org generates
-        next if /^\?/;
-        # skip links to upper directories.
-        # Could have been written better, ETOOLAZY. Or FIXME
-        next if m[^/];
-        make_path $where;
-        if (m[files/]) {
-            make_path "$where/files";
-            sync("$name/files", "$baseurl/files", $to);
+    for my $href ($html =~ /href="([^"]+)"/g) {
+        # skip links to upper directories
+        # and the zugaina.org specific urls
+        if (index($url, $href) != -1 or $href =~ /^\?/) {
+            #say "Skipping $href";
             next;
         }
-        say "$where/$_";
-        getstore "$baseurl/$_", "$where/$_";
+        # probably a directory
+        if ($href =~ m[/$]) {
+            push @files, map { "$href$_" } filelist("$url/$href");
+        } else {
+            push @files, $href;
+        }
     }
+    return @files;
 }
 
-my @lines = slurp $listfile;
-for my $baseurl (@lines) {
-    chomp $baseurl;
-    my ($name) = $baseurl =~ m[([^/]+/[^/]+/?)$];
-    unless ($name && $name ne "") {
-        warn "Failed getting the package name from $baseurl";
-        next;
+sub MAIN {
+    open(my $fh, '<', $list) or die $!;
+    while (<$fh>) {
+        my ($overlay, $port) = split /\s+/, $_;
+        next unless $port ne "";
+        my $baseurl = porturl($overlay, $port);
+        my @targets = filelist($baseurl);
+        my $where = "$destdir/$port";
+        remove_tree $where;
+        for (@targets) {
+            make_path dirname "$where/$_";
+            getstore "$baseurl/$_", "$where/$_";
+            say "$where/$_";
+        }
     }
-    sync $name, $baseurl, $basedir;
+    close $fh;
 }
+
+MAIN();
