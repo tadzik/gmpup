@@ -9,7 +9,7 @@ it. It will fetch the list to the ports/ directory. If you are brave,
 you can use the command-line option --destdir to sync your packages
 to /usr/local/portage:
 
-perl gmpup.pl --destdir=/usr/local/portage
+./gmpup --destdir=/usr/local/portage
 
 It _shouldn't_ break anything, and it works fine for me, but I'm not
 changing that default dir until the script gets tested in the field.
