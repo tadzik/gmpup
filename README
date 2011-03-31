@@ -15,3 +15,10 @@ It _shouldn't_ break anything, and it works fine for me, but I'm not
 changing that default dir until the script gets tested in the field.
 
 Patches, ideas, and constructive criticism welcome.
+
+TODO:
+
+* Update only the needed files, instead of removing the whole dir and
+  fetching it again
+
+* Write a gentoo ebuild for gmpup (help anyone?)
