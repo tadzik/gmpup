@@ -1,12 +1,12 @@
 Portage is not super-rich of useful software, and the funny stuff
 usually has to be fetched from overlays. Unfortunately, overlays are
 big, tend to duplicate portage entries or worse: they live on svn.
-So here's a tool to fetch only the ports you want, nothing else.
+So here's a tool to fetch only the packages you want, nothing else.
 
 Fill in your gmpup.lst like in the provided example and run gmpup.pl.
 You will need Perl's LWP::Simple module (dev-perl/libwww-perl) to run
 it. It will fetch the list to the ports/ directory. If you are brave,
-you can use the command-line option --destdir to sync your ports
+you can use the command-line option --destdir to sync your packages
 to /usr/local/portage:
 
 perl gmpup.pl --destdir=/usr/local/portage
