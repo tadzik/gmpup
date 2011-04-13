@@ -2,13 +2,15 @@
 use 5.010;
 use strict;
 use warnings;
-use LWP::Simple;
+use LWP::UserAgent;
 use File::Path 'make_path', 'remove_tree';
 use File::Basename;
 use Getopt::Long;
 
 my $destdir = 'ports';
 my $list    = 'gmpup.lst';
+my $ua      = LWP::UserAgent->new;
+$ua->timeout(10);
 
 sub porturl {
     my ($overlay, $port) = @_;
@@ -19,10 +21,17 @@ sub porturl {
 sub filelist {
     my $url  = shift;
     my @files;
-    my $html = get $url;
-    unless (defined $html) {
-        warn "Unable to fetch $url";
-        return;
+    my $resp = $ua->get($url);
+    my $html;
+    unless ($resp->is_success) {
+        warn "Failed fetching $url, retrying\n";
+        $resp = $ua->get($url);
+        unless ($resp->is_success) {
+            warn $resp->status_line;
+            return;
+        }
+    } else {
+        $html = $resp->decoded_content;
     }
     for my $href ($html =~ /href="([^"]+)"/g) {
         # skip links to upper directories
@@ -56,7 +65,14 @@ sub MAIN {
         remove_tree $where;
         for (@targets) {
             make_path dirname "$where/$_";
-            getstore "$baseurl/$_", "$where/$_";
+            my $resp = $ua->mirror("$baseurl/$_", "$where/$_");
+            unless ($resp->is_success) {
+                warn "Failed fetching $baseurl/$_, retrying\n";
+                $resp = $ua->mirror("$baseurl/$_", "$where/$_");
+                unless ($resp->is_success) {
+                    warn $resp->status_line;
+                }
+            }
             say "$where/$_";
         }
     }
