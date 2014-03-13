@@ -14,8 +14,7 @@ $ua->timeout(10);
 
 sub porturl {
     my ($overlay, $port) = @_;
-    return 'http://gentoo-overlays.zugaina.org/'
-           . $overlay . '/portage/' . $port . '/';
+    return "http://data.gpo.zugaina.org/$overlay/$port/"
 }
 
 sub filelist {
